@@ -37,6 +37,7 @@ WHERE lower(skills) LIKE '%python%' AND
 ORDER BY candidate_id ASC
 ;
 
+
 -- Given Solution (HAVING for a COUNT)
 SELECT
   candidate_id
