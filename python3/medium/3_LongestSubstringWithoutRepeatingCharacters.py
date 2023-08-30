@@ -22,7 +22,6 @@ Constraints:
 - s consists of English letters, digits, symbols and spaces.
 '''
 
-# ATTEMPT 1: Two FOR loops
 class Solution:
     def lengthOfLongestSubstring(self, s: str) -> int:
         # String to store the substring
@@ -56,5 +55,3 @@ class Solution:
 
         # Return length of the longest substring, not the substring itself
         return len(result)        
-
-# ATTEMPT 2
