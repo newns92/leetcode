@@ -73,3 +73,27 @@ SELECT
 FROM MeasurementsRanked
 GROUP BY measurement_day
 ;
+
+
+-- Solution: Using % instead of MOD()
+WITH MeasurementsRanked AS (
+  SELECT
+    -- measurement_time,
+    measurement_time::DATE AS measurement_day, -- cast as a date
+    -- SUM(measurement_value) AS measurement_sum
+    measurement_value,
+    ROW_NUMBER() OVER(
+      PARTITION BY measurement_time::DATE ORDER BY measurement_time
+    ) AS measurement_number
+  FROM measurements
+  --GROUP BY measurement_time::DATE
+  --ORDER BY measurement_time::DATE
+)
+
+SELECT
+  measurement_day,
+  SUM(measurement_value) FILTER (WHERE measurement_number % 2 <> 0) AS odd_sum,
+  SUM(measurement_value) FILTER (WHERE measurement_number % 2 = 0) AS even_sum
+FROM MeasurementsRanked
+GROUP BY measurement_day
+;
