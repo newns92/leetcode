@@ -43,7 +43,7 @@ SELECT
       WHEN merchant_id = next_merchant AND
         credit_card_id = next_credit_card AND
         amount = next_amount AND
-        minute_diff <= 10
+        minute_diff < 10
       THEN 1
       ELSE 0
     END
