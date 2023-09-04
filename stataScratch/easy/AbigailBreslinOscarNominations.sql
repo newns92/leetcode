@@ -9,3 +9,9 @@ movie:      varchar
 winner:     bool
 id:         int
 */
+
+SELECT
+    COUNT(id)
+FROM oscar_nominees
+WHERE LOWER(nominee) LIKE '%abigail breslin%'
+;

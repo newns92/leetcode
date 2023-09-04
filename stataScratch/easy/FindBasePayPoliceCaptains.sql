@@ -1,7 +1,7 @@
 /*
 Find the base pay for Police Captains. Output the employee name along with the corresponding base pay.
 
-sf_public_salaries
+sf_public_salaries:
 id:                 int
 employeename:       varchar
 jobtitle:           varchar
