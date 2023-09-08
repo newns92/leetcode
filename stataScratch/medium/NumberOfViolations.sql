@@ -29,9 +29,11 @@ risk_category:          varchar
 -- ATTEMPT
 SELECT
     EXTRACT(YEAR FROM inspection_date) AS year,
+    -- COUNT will ignore NULLs by default
     COUNT(violation_id) AS n_inspections
 FROM sf_restaurant_health_violations
 WHERE LOWER(business_name) = 'roxanne cafe'
+    -- AND violation_id IS NOT NULL
 GROUP BY EXTRACT(YEAR FROM inspection_date)
 ORDER BY n_inspections ASC
 ;
