@@ -27,21 +27,11 @@
 -- GROUP BY bike_number
 -- ORDER BY rides_count DESC
 
--- Strategy 1: GROUP BY
+
 SELECT
     bike_number,
     MAX(end_time) AS last_use_time
 FROM dc_bikeshare_q1_2012
 GROUP BY bike_number
--- Order the results by bikes that were most recently used
-ORDER BY last_use_time DESC
-
-
--- Strategy 2: Window function with DISTINCT to remove duplicate bike numbers
-SELECT DISTINCT
-    bike_number,
-    MAX(end_time) OVER(PARTITION BY bike_number) AS last_use_time
-FROM dc_bikeshare_q1_2012
--- GROUP BY bike_number
 -- Order the results by bikes that were most recently used
 ORDER BY last_use_time DESC
