@@ -17,6 +17,7 @@ post_date:      datetime
 */
 
 
+-- Strategy 1: Subquery in the WHERE clause
 SELECT
     post_id,
     poster,
@@ -30,4 +31,18 @@ WHERE post_id IN (
     FROM facebook_reactions
     WHERE reaction = 'heart'
 )
+;
+
+
+-- Strategy 2: DISTINCT Clause
+SELECT DISTINCT
+    posts.post_date,
+    posts.post_id,
+    posts.post_keywords,
+    posts.post_text,
+    posts.poster
+FROM facebook_posts AS posts
+LEFT JOIN facebook_reactions AS rxns
+    ON posts.post_id = rxns.post_id
+WHERE LOWER(rxns.reaction) = 'heart'
 ;

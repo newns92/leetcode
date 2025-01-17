@@ -33,3 +33,13 @@ JOIN facebook_hack_survey ON
     facebook_employees.id = facebook_hack_survey.employee_id
 GROUP BY facebook_employees.location
 ;
+
+
+SELECT
+    emp.location,
+    AVG(survey.popularity) AS avg_popularity
+FROM facebook_employees AS emp
+LEFT JOIN facebook_hack_survey AS survey
+    ON emp.id = survey.employee_id
+GROUP BY emp.location
+;

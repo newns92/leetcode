@@ -15,3 +15,10 @@ SELECT
 FROM oscar_nominees
 WHERE LOWER(nominee) LIKE '%abigail breslin%'
 ;
+
+
+SELECT
+    COUNT(id)
+FROM oscar_nominees
+WHERE LOWER(nominee) = 'abigail breslin'
+;
