@@ -70,6 +70,51 @@ ORDER BY title ASC
 ;
 
 
+-- ATTEMPT 2: No CTE, all in the SELECT, filter in the HAVING clause
+SELECT
+    -- projects.id AS project_id_main,
+    projects.title AS project_title,
+    projects.budget AS project_budg,
+    -- projects.start_date,
+    -- projects.end_date,
+    -- projects.end_date - projects.start_date AS project_difference_days,
+    
+    -- Prorated cost = a fee calculated for a partial billing period
+    -- Assume all years have 365 days
+    -- https://stackoverflow.com/questions/11719044/how-to-get-a-float-result-by-dividing-two-integer-values-using-t-sql
+    -- (projects.end_date - projects.start_date) / 365.0 AS prorate_amount,
+    -- CAST((projects.end_date - projects.start_date)  AS FLOAT) / CAST(365 AS FLOAT) AS prorate_amount2
+    
+    -- COUNT(DISTINCT employees.id) AS num_employees
+    -- SUM(employees.salary) AS total_salary_cost,
+    
+    -- Do the multiplication by indidivual salary so as to avoid
+    --  having to put projects.end_date and projects.start_date in
+    --  the GROUP BY
+    -- Round up to nearest dollar
+    CEIL(SUM(employees.salary * ((projects.end_date - projects.start_date) / 365.0))) AS prorated_total_salary_cost
+    -- -- See if prorated salary cost outweights budget:
+    -- projects.budget
+    --     -
+    --     CEIL(SUM(employees.salary * ((projects.end_date - projects.start_date) / 365.0)))
+    -- AS budget_salary_cost_diff
+FROM linkedin_projects AS projects
+LEFT JOIN linkedin_emp_projects AS link
+    ON projects.id = link.project_id
+LEFT JOIN linkedin_employees AS employees
+    ON link.emp_id = employees.id
+GROUP BY
+    -- project_id_main,
+    project_title,
+    project_budg
+HAVING
+    CEIL(SUM(employees.salary * ((projects.end_date - projects.start_date) / 365.0)))
+    >
+    projects.budget
+;
+
+
+
 -- Solution: Subquery in the FROM
 SELECT
     title,

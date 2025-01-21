@@ -32,3 +32,19 @@ GROUP BY from_user
 ORDER BY total_emails DESC, from_user ASC
 -- LIMIT 3
 ;
+
+
+-- ATTEMPT 2: Less notes
+SELECT
+    from_user AS sender,
+    -- Email activity rank is defined by the total number of emails sent
+    COUNT(from_user) AS emails_sent,
+    -- return a unique value (i.e., a unique rank) even if
+    --  multiple users have the same number of emails
+    ROW_NUMBER() OVER(ORDER BY COUNT(from_user) DESC, from_user ASC) AS activity_rank
+FROM google_gmail_emails
+GROUP BY from_user
+ORDER BY
+    emails_sent DESC,
+    sender ASC
+;

@@ -14,7 +14,7 @@ revenue:    int
 */
 
 
--- ATTEMPT: CASE with a LEAD
+-- ATTEMPT 1: CASE with a LEAD to mark as 'active' or 'non-active' String
 WITH Statuses AS (
     SELECT
         user_id,
@@ -37,6 +37,41 @@ SELECT
     DISTINCT user_id
 FROM statuses
 WHERE status = 'active'
+;
+
+
+-- ATTEMPT 2: Use LEAD within a CASE to mark as active_user Boolean
+WITH days_between_purchases AS (
+    SELECT
+        -- id,
+        user_id,
+        -- item,
+        -- created_at,
+        -- -- https://www.codecademy.com/resources/docs/sql/window-functions/lead
+        -- -- LEAD(expression/column_name1, num_offset_rows)
+        -- --  OVER(PARTITION BY column_name ORDER BY column_name(s))
+        -- LEAD(created_at, 1) OVER(PARTITION BY user_id ORDER BY user_id, created_at) AS next_user_purchase_date,
+        LEAD(created_at, 1) OVER(PARTITION BY user_id ORDER BY user_id, created_at)
+            - 
+            created_at 
+        AS days_between_purchase,
+        CASE
+            WHEN LEAD(created_at, 1) OVER(PARTITION BY user_id ORDER BY user_id, created_at) - created_at <= 7
+            THEN True
+            ELSE False
+        END AS active_user
+    FROM amazon_transactions
+    -- LIMIT 3
+    ORDER BY
+        user_id ASC,
+        created_at ASC
+)
+
+SELECT DISTINCT
+    user_id
+FROM days_between_purchases
+WHERE active_user = True
+-- GROUP BY user_id
 ;
 
 

@@ -15,7 +15,7 @@ action:     varchar
 */
 
 
--- ATTEMPT:
+-- ATTEMPT 1 - CTE containing CASE statements within AGG functions, using a GROUP BY:
 With Data AS (
     SELECT
         user_id,
@@ -53,6 +53,55 @@ FROM Data
 WHERE session_time IS NOT NULL
 GROUP BY user_id
 ;
+
+
+-- ATTEMPT 2 - CTE containing CASE statements within AGG functions, using a OVER(PARTITION BY):
+
+WITH timestamps AS (
+    SELECT DISTINCT
+        user_id,
+        -- action,
+        -- timestamp,
+        TO_CHAR(timestamp, 'YYYY-MM-DD') AS date,
+        -- -- If there are multiple page_load events on the same day, 
+        -- --   use only the latest page_load
+        -- MAX(timestamp) OVER(PARTITION BY user_id, TO_CHAR(timestamp, 'YYYY-MM-DD')) AS latest_load_timestamp,
+        MAX(
+                CASE 
+                    WHEN LOWER(action) = 'page_load'
+                    THEN timestamp 
+                    ELSE NULL 
+                END
+            ) 
+            OVER(PARTITION BY user_id, TO_CHAR(timestamp, 'YYYY-MM-DD'))
+        AS latest_load_timestamp_by_day,
+        -- -- If there are multiple page_exit events on the same day, 
+        -- --   use only the earliest page_exit
+        -- MIN(timestamp) OVER(PARTITION BY user_id, TO_CHAR(timestamp, 'YYYY-MM-DD')) AS earliest_exit_timestamp,
+        MIN(
+                CASE 
+                    WHEN LOWER(action) = 'page_exit'
+                    THEN timestamp 
+                    ELSE NULL 
+                END
+            ) 
+            OVER(PARTITION BY user_id, TO_CHAR(timestamp, 'YYYY-MM-DD'))
+        AS earliest_exit_timestamp_by_day
+    FROM facebook_web_log
+    ORDER BY user_id ASC, date ASC -- timestamp ASC
+)
+
+SELECT
+    user_id,
+    -- date,
+    -- -- A session = the time difference between a latest page_load and earliest page_exit
+    -- earliest_exit_timestamp_by_day - latest_load_timestamp_by_day AS session_time
+    AVG(earliest_exit_timestamp_by_day - latest_load_timestamp_by_day) AS avg_session_time
+FROM timestamps
+GROUP BY user_id
+HAVING AVG(earliest_exit_timestamp_by_day - latest_load_timestamp_by_day) IS NOT NULL
+;
+
 
 
 -- Solution: Self-JOIN CTE

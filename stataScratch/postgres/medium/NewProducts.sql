@@ -12,7 +12,7 @@ product_name:   varchar
 */
 
 
--- ATTEMPT 1: Hard-coded
+-- ATTEMPT 1: Hard-coded, one CTE only, then SUM some CASE statements
 With Counts AS (
     SELECT
         company_name,
@@ -86,3 +86,53 @@ SELECT
 FROM Counts
 GROUP BY company_name
 ;
+
+
+-- ATTEMPT 3: 2 CTE's, one per year
+WITH launched_19 AS (
+    SELECT
+        company_name,
+        COUNT(DISTINCT product_name) AS products_launched
+    FROM car_launches
+    WHERE year = 2019
+    GROUP BY company_name
+),
+
+launched_20 AS (
+    SELECT
+        company_name,
+        COUNT(DISTINCT product_name) AS products_launched
+    FROM car_launches
+    WHERE year = 2020
+    GROUP BY company_name
+)
+
+SELECT
+    launched_20.company_name,
+    launched_20.products_launched - launched_19.products_launched AS net_difference_products
+FROM launched_20
+LEFT JOIN launched_19
+    ON launched_20.company_name = launched_19.company_name
+;
+
+
+-- SOLUTION: 2 CTE's, one per year
+WITH brands_2020 AS (
+    SELECT company_name, 
+           product_name AS brand_2020
+    FROM car_launches
+    WHERE YEAR = 2020
+),
+brands_2019 AS (
+    SELECT company_name, 
+           product_name AS brand_2019
+    FROM car_launches
+    WHERE YEAR = 2019
+)
+
+SELECT a.company_name,
+       (COUNT(DISTINCT a.brand_2020) - COUNT(DISTINCT b.brand_2019)) AS net_products
+FROM brands_2020 a
+FULL OUTER JOIN brands_2019 b ON a.company_name = b.company_name
+GROUP BY a.company_name
+ORDER BY a.company_name;

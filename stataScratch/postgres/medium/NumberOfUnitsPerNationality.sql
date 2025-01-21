@@ -34,3 +34,25 @@ GROUP BY airbnb_hosts.nationality
 ORDER BY apartment_count DESC
 -- LIMIT 10
 ;
+
+
+-- ATTEMPT 2: Mostly similar, minor differences in syntax and formatting
+SELECT
+    -- hosts.host_id AS host_id,
+    -- Broken down by nationality
+    hosts.nationality AS nationality,
+    -- Use unit ID for apartment counting
+    COUNT(DISTINCT units.unit_id) AS num_units
+FROM airbnb_hosts AS hosts
+LEFT JOIN airbnb_units AS units
+    ON hosts.host_id = units.host_id
+WHERE
+    -- Owned by people under 30
+    hosts.age < 30
+    -- Looking for APARTMENTS
+    AND lower(units.unit_type) = 'apartment'
+GROUP BY nationality -- hosts.host_id
+-- Sort accordingly to see who owns the most apartments
+ORDER BY num_units DESC
+LIMIT 1
+;

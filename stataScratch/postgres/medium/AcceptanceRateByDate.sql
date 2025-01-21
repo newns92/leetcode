@@ -15,14 +15,15 @@ action:             varchar
 */
 
 
--- ATTEMPT 1: Convoluted CTE's + CASE statements and removed dupelicates
-With AcceptedYesNo AS (
+-- ATTEMPT 1: Convoluted CTE's + CASE statements and removed duplicates
+With acceptedYesNo AS (
     SELECT
         user_id_sender,
         user_id_receiver,
         date,
         action,
         CASE
+            -- use TUPLE
             WHEN (user_id_sender, user_id_receiver) IN (
                     SELECT
                         user_id_sender,
@@ -56,7 +57,7 @@ SELECT
         END
     -- ) AS requests_sent,
     )::float AS percentage_acceptance
-FROM AcceptedYesNo
+FROM acceptedYesNo
 WHERE action = 'sent' -- avoids the duplicate (user_id_sender, user_id_receiver, date) key
 GROUP BY date
 ORDER BY date ASC
@@ -95,4 +96,68 @@ LEFT JOIN accepted_cte
     ON sent_cte.user_id_sender = accepted_cte.user_id_sender AND 
         sent_cte.user_id_receiver = accepted_cte.user_id_receiver
 GROUP BY sent_cte.date
+;
+
+
+-- ATTEMPT 3: Similar to #2, CTE's for sent and accepted, JOIN on both user ID's, slightly different calculation
+SELECT
+    *
+FROM fb_friend_requests
+LIMIT 5
+;
+
+
+WITH friend_requests_sent AS 
+(
+    SELECT DISTINCT
+        date,
+        -- need both user ID's to JOIN on later to match sending and acceptance
+        user_id_sender,
+        user_id_receiver,
+        COUNT(action) as friend_requests_sent
+    FROM fb_friend_requests
+    WHERE action = 'sent'
+    GROUP BY
+        date,
+        user_id_sender,
+        user_id_receiver
+    -- LIMIT 2
+)
+,
+
+friend_requests_accepted AS 
+(
+    SELECT DISTINCT
+        date,
+        -- need both user ID's to JOIN on later to match sending and acceptance
+        user_id_sender,
+        user_id_receiver,
+        COUNT(action) as friend_requests_accepted
+    FROM fb_friend_requests
+    WHERE action = 'accepted'
+    GROUP BY
+        date,
+        user_id_sender,
+        user_id_receiver
+    -- LIMIT 2
+)
+
+
+SELECT
+    friend_requests_sent.date,
+    SUM(friend_requests_accepted.friend_requests_accepted)
+        /
+        SUM(friend_requests_sent.friend_requests_sent)::FLOAT
+    AS acceptance_rate
+    -- friend_requests_sent.user_id_sender,
+    -- friend_requests_sent.user_id_receiver,
+    -- friend_requests_sent.friend_requests_sent,
+    -- friend_requests_accepted.friend_requests_accepted
+FROM friend_requests_sent
+LEFT JOIN friend_requests_accepted
+    ON
+        friend_requests_sent.user_id_sender = friend_requests_accepted.user_id_sender
+        AND friend_requests_sent.user_id_receiver = friend_requests_accepted.user_id_receiver
+GROUP BY friend_requests_sent.date
+ORDER BY date ASC
 ;

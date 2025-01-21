@@ -24,7 +24,7 @@ n_messages:     int
 */
 
 
--- ATTEMPT: DENSE_RANK
+-- ATTEMPT 1: DENSE_RANK, order by AGG function
 SELECT
     DENSE_RANK() OVER(ORDER BY SUM(n_messages) DESC) AS ranking,
     id_guest,
@@ -33,4 +33,17 @@ FROM airbnb_contacts
 GROUP BY id_guest
 ORDER BY sum_n_messages DESC
 -- LIMIT 5
+;
+
+
+-- ATTEMPT 2: DENSE_RANK, order by WINDOW function
+SELECT
+    -- ranking shouldn't skip numbers, even if guests share same rank
+    DENSE_RANK() OVER(ORDER BY SUM(n_messages) DESC) AS activity_rank,
+    id_guest AS guest_id,
+    SUM(n_messages) AS total_messages_sent
+FROM airbnb_contacts
+GROUP BY guest_id
+ORDER BY activity_rank ASC
+-- LIMIT 3
 ;

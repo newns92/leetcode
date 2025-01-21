@@ -26,6 +26,23 @@ LEFT JOIN title ON
 WHERE worker.salary = (SELECT MAX(salary) FROM worker)
 ;
 
+-- ATTEMPT 2: Same strategy, different formatting
+SELECT
+    -- worker.worker_id,
+    title.worker_title
+    -- worker.salary
+FROM worker
+LEFT JOIN title
+    ON worker.worker_id = title.worker_ref_id
+WHERE worker.salary = (
+    SELECT
+        MAX(salary)
+    FROM worker
+)
+-- ORDER BY salary DESC
+;
+
+
 -- GIVEN SOLUTION: Subquery in FROM w/ CASE
 SELECT 
     *
