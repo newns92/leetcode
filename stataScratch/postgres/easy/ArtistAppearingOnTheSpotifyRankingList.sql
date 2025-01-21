@@ -16,7 +16,7 @@ region:     varchar
 
 SELECT
     artist,
-    COUNT(id)
+    COUNT(id) AS appearances
 FROM spotify_worldwide_daily_song_ranking
 GROUP BY artist
 ORDER BY COUNT(id) DESC

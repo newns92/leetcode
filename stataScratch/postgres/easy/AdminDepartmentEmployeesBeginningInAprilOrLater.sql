@@ -12,8 +12,9 @@ department:     varchar
 
 
 SELECT
-    COUNT(worker_id)
+    COUNT(worker_id) AS num_admin_employees
 FROM worker
-WHERE LOWER(department) LIKE '%admin%' AND
-    EXTRACT(MONTH FROM joining_date) >= 4
+WHERE 
+    LOWER(department) = 'admin'
+    AND EXTRACT(MONTH FROM joining_date) >= 4
 ;

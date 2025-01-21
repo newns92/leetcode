@@ -21,14 +21,15 @@ total_order_cost:   int
 */
 
 SELECT
+    -- customers.id,
+    customers.first_name,
     orders.order_date,
     orders.order_details,
-    orders.total_order_cost,
-    customers.first_name
+    orders.total_order_cost
 FROM customers
-LEFT JOIN orders ON
-    customers.id = orders.cust_id
-WHERE LOWER(first_name) IN ('jill', 'eva')
+LEFT JOIN orders
+    ON customers.id = orders.cust_id
+WHERE
+    LOWER(customers.first_name) IN ('jill', 'eva')
 ORDER BY customers.id ASC
---LIMIT 3
 ;

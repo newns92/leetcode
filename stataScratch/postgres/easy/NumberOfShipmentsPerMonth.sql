@@ -12,6 +12,7 @@ weight:         int
 shipment_date:  datetime
 */
 
+-- ATTEMPT 1: No DISTINCT in the COUNT clause, explicit function in GROUP BY
 SELECT
     -- TO_DATE(shipment_date, "yyyy-mm") AS year_month
     TO_CHAR(shipment_date, 'yyyy-mm') AS year_month,
@@ -19,4 +20,14 @@ SELECT
     COUNT(CONCAT(shipment_id, sub_id)) AS count
 FROM amazon_shipment
 GROUP BY TO_CHAR(shipment_date, 'yyyy-mm')
+;
+
+
+-- ATTEMPT 2: DISTINCT in COUNT clause, columnname in GROUP BY
+SELECT
+    TO_CHAR(shipment_date, 'YYYY-MM') AS shipment_month,
+    -- unique key for one shipment = combo of shipment_id and sub_id
+    COUNT(DISTINCT CONCAT(shipment_id, sub_id)) AS unique_shipments
+FROM amazon_shipment
+GROUP BY shipment_month
 ;

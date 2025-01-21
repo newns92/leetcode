@@ -27,7 +27,7 @@ record_id:              varchar
 SELECT
     activity_date,
     pe_description
-FROM los_angeles_restaurant_health_inspections
+FROM los_angeles_restaurant_health_inspections -- AS la_rest_inspections
 WHERE LOWER(facility_name) = 'street churros' AND
     score < 95
 ;

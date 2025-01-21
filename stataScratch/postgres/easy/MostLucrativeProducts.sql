@@ -12,16 +12,20 @@ date:               datetime
 units_sold:         int
 */
 
+
+-- Postgres
 SELECT
     product_id,
     SUM(cost_in_dollars * units_sold) AS total_revenue
 FROM online_orders
-WHERE EXTRACT(YEAR FROM date) = '2022' AND
-    EXTRACT(MONTH FROM date) BETWEEN 1 AND 6
+WHERE
+    EXTRACT(YEAR FROM date) = 2022
+    -- BETWEEN clause is inclusive
+    AND EXTRACT(MONTH FROM date) BETWEEN 1 AND 6
 GROUP BY product_id
 ORDER BY total_revenue DESC
 LIMIT 5
 ;
 
 
--- Oracle?
+-- Oracle

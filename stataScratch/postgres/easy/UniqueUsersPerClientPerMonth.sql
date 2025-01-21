@@ -12,6 +12,7 @@ event_id:       int
 */
 
 
+-- Explicit function in GROUP BY
 SELECT
     client_id,
     EXTRACT(MONTH FROM time_id) AS month,
@@ -21,4 +22,16 @@ GROUP BY
     client_id,
     EXTRACT(MONTH FROM time_id)
 -- LIMIT 2
+;
+
+-- Column name in GROUP BY, use ORDER BY
+SELECT
+    client_id,
+    EXTRACT(MONTH FROM time_id) AS month,
+    COUNT(DISTINCT user_id) AS num_unique_users
+FROM fact_events
+GROUP BY client_id, month
+ORDER BY
+    client_id ASC,
+    month ASC
 ;

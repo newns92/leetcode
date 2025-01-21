@@ -28,9 +28,14 @@ SELECT
     customers.first_name,
     customers.last_name,
     customers.city,
+    -- orders.*
     orders.order_details
 FROM customers
-LEFT JOIN orders ON
-    customers.id = orders.cust_id
-ORDER BY customers.first_name ASC, orders.order_details ASC
+-- LEFT JOIN to customers because we want all customer 
+--  details regardless of an order record
+LEFT JOIN orders
+    ON customers.id = orders.cust_id
+ORDER BY
+    customers.first_name ASC,
+    orders.order_details ASC
 ;
