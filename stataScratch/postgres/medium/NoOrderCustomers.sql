@@ -56,7 +56,7 @@ WITH inside_date_range AS
     LEFT JOIN orders
         ON customers.id = orders.cust_id
     WHERE orders.order_date BETWEEN '2019-02-01' AND '2019-03-01'
-    ORDER BY customer_first_name, orders.order_date
+    -- ORDER BY customer_first_name, orders.order_date
 )
 
 SELECT

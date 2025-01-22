@@ -8,7 +8,7 @@ status:     varchar
 country:    varchar
 */
 
-
+-- ATTEMPT 1: COUNT user_id
 SELECT
     -- ROUND(
         COUNT(
@@ -31,4 +31,28 @@ FROM fb_active_users
 -- WHERE country = 'USA' AND
 --     status = 'open'
 -- LIMIT 3
+;
+
+
+-- ATTEMPT 2: SUM CASE
+SELECT
+    SUM(
+            CASE
+                WHEN LOWER(country) = 'usa'
+                    AND LOWER(status) = 'open'
+                THEN 1
+                ELSE 0
+            END
+    )
+    /
+    SUM(
+            CASE
+                WHEN LOWER(country) = 'usa'
+                    -- AND LOWER(status) = 'open'
+                THEN 1
+                ELSE 0
+            END
+    )::FLOAT
+    AS active_user_ratio
+FROM fb_active_users
 ;
