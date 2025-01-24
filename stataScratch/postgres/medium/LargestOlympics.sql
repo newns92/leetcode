@@ -29,10 +29,10 @@ With Rankings AS (
     SELECT
         games,
         COUNT(DISTINCT id) AS athletes_count,
-        RANK() OVER(ORDER BY COUNT(DISTINCT ID) DESC) AS atheletes_count_rank
+        RANK() OVER(ORDER BY COUNT(DISTINCT id) DESC) AS atheletes_count_rank
     FROM olympics_athletes_events
     GROUP BY games
-    ORDER BY athletes_count DESC
+    -- ORDER BY athletes_count DESC
     --LIMIT 3
 )
 
@@ -42,6 +42,36 @@ SELECT
 FROM Rankings
 WHERE atheletes_count_rank = 1
 ;
+
+
+-- ATTEMPT 2: LIMIT clause (NOT robust to ties)
+SELECT
+    games,
+    -- DISTINCT = Atheletes may compete in multiple events (sports) ?
+    COUNT(DISTINCT id) AS athletes_count
+FROM olympics_athletes_events
+GROUP BY games 
+-- ORDER BY games ASC
+ORDER BY athletes_count DESC
+LIMIT 1
+;
+
+/* 
+SELECT
+    games,
+    -- sport,
+    id,
+    -- DISTINCT = Atheletes may compete in multiple events (sports)?
+    COUNT(sport) AS sport_count
+FROM olympics_athletes_events
+GROUP BY games, id
+-- ORDER BY games ASC
+ORDER BY sport_count DESC
+-- LIMIT 1
+;
+*/
+
+
 
 
 -- Solution: CTE and Subquery with MAX

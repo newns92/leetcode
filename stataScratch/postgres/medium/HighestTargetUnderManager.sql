@@ -43,6 +43,28 @@ WHERE target_rank = 1
 ;
 
 
+-- ATTEMPT 2: Sloppy CTE with subquery in the WHERE clause
+WITH max_target AS (
+    SELECT DISTINCT
+        -- first_name,
+        -- target,
+        manager_id,
+        MAX(target) OVER(PARTITION BY manager_id) AS max_manager_target
+    FROM salesforce_employees
+    -- WHERE manager_id = 13
+    -- LIMIT 10
+)
+
+SELECT
+    first_name,
+    target
+FROM salesforce_employees
+WHERE target = (
+    SELECT max_manager_target FROM max_target WHERE manager_id = 13
+) AND manager_id = 13
+;
+
+
 -- Solution: IN a Subquery
 SELECT
     first_name,

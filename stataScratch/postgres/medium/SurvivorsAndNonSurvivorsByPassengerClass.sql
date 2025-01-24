@@ -54,5 +54,6 @@ SELECT
 FROM titanic
 -- GROUP BY pclass
 GROUP BY survived
+ORDER BY survived ASC
 -- LIMIT 3
 ;

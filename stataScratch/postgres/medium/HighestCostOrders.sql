@@ -52,6 +52,41 @@ WHERE total_cost_rank = 1
 ;
 
 
+-- ATTEMPT 2: Pretty much same strategy
+WITH ranks AS (
+    SELECT
+        customers.id AS customer_id,
+        customers.first_name AS customer_first_name,
+        SUM(total_order_cost) AS total_daily_order_cost,
+        orders.order_date AS order_date,
+        DENSE_RANK() OVER(ORDER BY SUM(total_order_cost) DESC) AS total_daily_order_cost_rank
+    FROM customers
+    LEFT JOIN orders
+         ON customers.id = orders.cust_id
+    WHERE order_date BETWEEN '2019-02-01' AND '2019-05-01' -- inclusive
+    GROUP BY
+        customer_id,
+        customer_first_name,
+        order_date
+    -- ORDER BY customer_id, order_date ASC -- orders.id
+)
+
+SELECT
+    customer_first_name,
+    order_date,
+    total_daily_order_cost
+FROM ranks
+WHERE total_daily_order_cost_rank = 1
+;
+
+/*
+customer_id	id	cust_id	order_date	order_details	total_order_cost
+7	25	7	2019-04-19	Coat	125
+7	17	7	2019-04-19	Suit	150
+*/
+
+
+
 -- Solution: Similar but using a MAX subquery in WHERE clause
 WITH cte AS (
     SELECT
