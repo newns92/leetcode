@@ -41,6 +41,27 @@ WHERE ranking = 1
 ;
 
 
+-- ATTEMPT 2: CTE with no rank
+WITH flagged AS (
+    SELECT
+        -- *,
+        CONCAT(user_flags.user_firstname, ' ', user_flags.user_lastname) AS user_name,
+        COUNT(DISTINCT user_flags.video_id) AS num_distinct_approved_videos
+    FROM user_flags
+    LEFT JOIN flag_review
+        ON user_flags.flag_id = flag_review.flag_id
+    WHERE LOWER(reviewed_outcome) = 'approved'
+    GROUP BY CONCAT(user_flags.user_firstname, ' ', user_flags.user_lastname)
+)
+
+SELECT
+    user_name
+FROM flagged
+WHERE num_distinct_approved_videos = (SELECT MAX(num_distinct_approved_videos) FROM flagged)
+;
+
+
+
 -- SOLUTION: INNER JOIN with a Subquery
 SELECT
     username

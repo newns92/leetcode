@@ -17,8 +17,8 @@ SELECT
     cust_id,
     SUM(total_order_cost) AS total_customer_revenue
 FROM orders
-WHERE EXTRACT(MONTH FROM order_date) = 3 AND
-    EXTRACT(YEAR FROM order_date) = 2019
+WHERE EXTRACT(MONTH FROM order_date) = 3
+    AND EXTRACT(YEAR FROM order_date) = 2019
 GROUP BY cust_id
 ORDER BY total_customer_revenue DESC
 -- LIMIT 5

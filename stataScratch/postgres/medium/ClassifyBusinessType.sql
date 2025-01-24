@@ -29,7 +29,7 @@ risk_category:          varchar
 
 
 -- ATTEMPT: CASE with an OR condition
-SELECT DISTINCT
+SELECT DISTINCT  -- some repeat `business_name`'s
     business_name,
     CASE
         WHEN LOWER(business_name) LIKE '%restaurant%'

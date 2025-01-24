@@ -79,6 +79,20 @@ WHERE sat_writing_score_rank -- = FLOOR(total_searches / 2)
 ;
 
 
+-- ATTEMPT 3: PERCENTILE_CONT in a CTE
+WITH median AS (
+    SELECT
+        PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY sat_writing) AS median_sat_writing
+    FROM sat_scores
+)
+
+SELECT
+    student_id
+FROM sat_scores
+WHERE sat_writing = (SELECT median_sat_writing FROM median)
+;
+
+
 -- SOLUTION: PERCENTILE_CONT function
 SELECT 
     student_id 

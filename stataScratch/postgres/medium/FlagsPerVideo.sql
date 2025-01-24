@@ -25,7 +25,18 @@ GROUP BY video_id
 ;
 
 
--- Solutoin: COALESCE used to handle cases where the first name or last name is null for some reason?
+-- ATTEMPT 2
+SELECT
+    video_id,
+    COUNT(DISTINCT CONCAT(user_firstname, user_lastname)) AS num_unique_users
+FROM user_flags
+WHERE flag_id IS NOT NULL
+GROUP BY video_id
+-- LIMIT 3
+;
+
+
+-- Provided Solution: COALESCE used to handle cases where the first name or last name is null for some reason?
 SELECT
     video_id,
     COUNT(DISTINCT concat(COALESCE(user_firstname, ''), COALESCE(user_lastname, ''))) AS num_unique_users

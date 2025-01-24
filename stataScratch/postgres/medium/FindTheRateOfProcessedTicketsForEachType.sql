@@ -24,8 +24,27 @@ GROUP BY type
 -- LIMIT 5
 ;
 
+-- ATTEMPT 2: COUNT type instead of complaint_id
+SELECT
+    type,
+    -- COUNT(type) AS n_complaints,
+    COUNT(
+        CASE
+            WHEN processed = True
+            THEN type
+            ELSE NULL
+        END
+    ) -- AS n_complaints_processed
+        /
+        COUNT(type)::FLOAT
+    AS processed_rate
+FROM facebook_complaints
+GROUP BY type
+-- LIMIT 10
+;
 
--- SOLUTION: SUM instead of 2 COUNTS
+
+-- SOLUTION: SUM and COUNT, instead of 2 COUNTS
 SELECT
     type,
     SUM(
