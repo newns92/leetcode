@@ -36,6 +36,18 @@ ORDER BY review_cnt DESC
 ;
 
 
+-- ATTEMPT 2: Same as above but with new col name in GROUP BY, not the function
+SELECT
+    -- categories,
+    UNNEST(STRING_TO_ARRAY(categories, ';')) AS category,
+    SUM(review_count) AS total_reviews
+FROM yelp_business
+GROUP BY category
+ORDER BY total_reviews DESC
+-- LIMIT 3
+;
+
+
 -- SOLUTION: UNNEST(STRING_TO_ARRAY()) with a CTE
 WITH Categories AS (
     SELECT

@@ -26,3 +26,20 @@ WHERE cool = (
 )
 -- LIMIT 3
 ;
+
+
+-- ATTEMPT 2: CTE
+WITH max_cool AS (
+    SELECT
+        MAX(cool) AS max_cool_votes
+    FROM yelp_reviews
+)
+
+SELECT
+    business_name,
+    review_text
+    cool
+FROM yelp_reviews
+WHERE cool = (
+    SELECT max_cool_votes FROM max_cool
+)

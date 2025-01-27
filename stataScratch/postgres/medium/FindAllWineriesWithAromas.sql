@@ -89,7 +89,22 @@ WHERE keyword IN ('plum', 'cherry', 'rose', 'hazelnut')
 ;
 
 
--- Solution: Incredibly simply
+-- ATTEMPT 3: Regex and ~ operator to match it
+SELECT DISTINCT
+    winery
+    -- description
+FROM winemag_p1
+-- aromas of plum, cherry, rose, or hazelnut (singular form only)
+-- https://stackoverflow.com/questions/60996833/search-for-an-exact-part-of-sentence-in-postgresql
+WHERE LOWER(description) ~ '\yplum\y'
+    OR LOWER(description) ~ '\ycherry\y'
+    OR LOWER(description) ~ '\yrose\y'
+    OR LOWER(description) ~ '\yhazelnut\y'
+-- LIMIT 3
+;
+
+
+-- Solution: Incredibly simple
 SELECT
     DISTINCT winery
 FROM winemag_p1
