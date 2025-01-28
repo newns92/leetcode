@@ -19,6 +19,8 @@ address:        varchar
 phone_number:   varchar
 */
 
+
+-- ATTEMPT 1: CASE statement in one SELECT call
 SELECT
     100 * (
         COUNT(
@@ -36,4 +38,54 @@ LEFT JOIN customers ON
     orders.cust_id = customers.id
 -- WHERE customers.address IS NOT NULL
 -- LIMIT 5
+;
+
+
+-- ATTEMPT 2: CTE for shippable orders
+WITH shippable AS (
+SELECT
+    COUNT(DISTINCT orders.id) AS shippable_orders
+FROM orders
+LEFT JOIN customers
+    ON orders.cust_id = customers.id
+-- Consider an order is shipable if the customer's address is known.
+WHERE customers.address IS NOT NULL
+)
+
+SELECT
+    (SELECT shippable_orders FROM shippable)
+        /
+        COUNT(orders.id)::FLOAT
+    * 100
+    AS shippable_rate_perc
+FROM orders
+;
+
+
+-- SOLUTION: Combo of the above = CASE statement in the CTE
+WITH base AS (
+    SELECT
+        o.id,
+        CASE    
+            WHEN address IS NULL
+            THEN False
+            ELSE True
+        END AS is_shipable
+    FROM orders o
+    INNER JOIN customers c
+        ON o.cust_id = c.id
+)
+
+SELECT
+    100 * 
+        SUM(
+            CASE
+                WHEN is_shipable
+                THEN 1
+                ELSE 0
+            END)::NUMERIC 
+        / 
+        COUNT(*) 
+    AS percent_shipable
+FROM base
 ;

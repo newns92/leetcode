@@ -58,6 +58,41 @@ GROUP BY
 ;
 
 
+-- ATTEMPT 2: More robust with employee ID making sure to count the right employees with
+--      > 1 bonus
+WITH full_data AS (
+    SELECT
+        -- need ID because some employees get > 1 bonus
+        sf_employee.id,
+        sf_employee.employee_title,
+        sf_employee.sex,
+        sf_employee.salary,
+        SUM(sf_bonus.bonus) AS total_bonus
+    FROM sf_employee
+    LEFT JOIN sf_bonus
+        ON sf_employee.id = sf_bonus.worker_ref_id
+    -- disregard employees without bonuses in your calculation
+    WHERE sf_bonus.bonus IS NOT NULL
+    GROUP BY
+        sf_employee.id,
+        sf_employee.employee_title,
+        sf_employee.sex,
+        sf_employee.salary
+)
+
+SELECT
+    employee_title,
+    sex,
+    -- Total comp = adding both the salary and bonus of each employee
+    AVG(salary + total_bonus) AS avg_total_comp
+FROM full_data
+GROUP BY
+    employee_title,
+    sex
+;
+
+
+
 -- SOLUTION: Subquery
 SELECT
     sf_employee.employee_title,
@@ -74,4 +109,33 @@ INNER JOIN (
 GROUP BY 
     employee_title,
     sex
+;
+
+
+-- New Solution: CTE's
+WITH bonus_totals AS (
+    SELECT
+        worker_ref_id,
+        SUM(bonus) AS ttl_bonus
+    FROM sf_bonus
+    GROUP BY worker_ref_id
+)
+,
+
+compensation_data AS (
+    SELECT
+        e.employee_title,
+        e.sex,
+        (e.salary + b.ttl_bonus) AS total_compensation
+    FROM sf_employee e
+    INNER JOIN bonus_totals b
+        ON e.id = b.worker_ref_id
+)
+
+SELECT
+    employee_title,
+    sex
+    AVG(total_compensation) AS avg_compensation
+FROM compensation_data
+GROUP BY employee_title, sex
 ;

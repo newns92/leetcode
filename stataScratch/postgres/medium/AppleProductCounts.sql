@@ -1,5 +1,6 @@
 /*
-Find the number of Apple product users and the number of total users with a device and group the counts by language. 
+Find the number of Apple product users and the number of total users with a device and 
+    group the counts by language. 
 
 Assume Apple products are only MacBook-Pro, iPhone 5s, and iPad-air. 
 
@@ -43,4 +44,25 @@ LEFT JOIN playbook_users ON
 GROUP BY playbook_users.language
 ORDER BY n_total_users DESC
 -- LIMIT 5
+;
+
+
+-- ATTEMPT 2: Basically the same
+SELECT
+    -- *,
+    users.language AS language,
+    COUNT(DISTINCT users.user_id) AS total_users,
+    COUNT(DISTINCT 
+        CASE
+            WHEN LOWER(events.device) IN ('macbook pro', 'iphone 5s', 'ipad air')
+            THEN users.user_id
+            ELSE NULL
+        END -- AS apple_yn
+    ) AS apple_users
+FROM playbook_events AS events
+LEFT JOIN playbook_users AS users
+    ON events.user_id = users.user_id
+GROUP BY language
+ORDER BY total_users DESC
+-- LIMIT 10
 ;

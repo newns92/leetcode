@@ -17,10 +17,10 @@ age:            int
 */
 
 SELECT DISTINCT
-    airbnb_hosts.host_id,
-    airbnb_guests.guest_id
-FROM airbnb_hosts
-INNER JOIN airbnb_guests ON
-    airbnb_hosts.nationality = airbnb_guests.nationality AND
-    airbnb_hosts.gender = airbnb_guests.gender
+    host.host_id,
+    guest.guest_id
+FROM airbnb_hosts AS host
+LEFT JOIN airbnb_guests AS guest
+    ON host.gender = guest.gender
+        AND host.nationality = guest.nationality
 ;

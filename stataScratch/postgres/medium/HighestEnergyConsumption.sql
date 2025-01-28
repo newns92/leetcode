@@ -53,3 +53,47 @@ SELECT
 FROM Rankings
 WHERE total_energy_rank = 1
 ;
+
+
+-- ATTEMPT 2: Similar but did sums in indidivual tables and used RANK() instead of DENSE_RANK()
+WITH data AS (
+    SELECT
+        date,
+        SUM(consumption) AS consumption
+    FROM fb_eu_energy AS eu
+    GROUP BY date
+    
+    UNION
+    
+    SELECT
+        date,
+        SUM(consumption) AS consumption
+    FROM fb_asia_energy AS asia
+    GROUP BY date
+    
+    UNION 
+    
+    SELECT
+        date,
+        SUM(consumption) AS consumption
+    FROM fb_na_energy AS na
+    GROUP BY date
+)
+,
+
+ranks AS (
+    SELECT
+        date,
+        SUM(consumption) AS consumption_total,
+        RANK() OVER(ORDER BY SUM(consumption) DESC) AS consumption_rank
+    FROM data
+    GROUP BY date
+    -- ORDER BY consumption_total DESC
+)
+
+SELECT
+    date,
+    consumption_total
+FROM ranks
+WHERE consumption_rank = 1
+;
