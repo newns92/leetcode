@@ -83,8 +83,11 @@ SELECT
     business_postal_code,
     COUNT(DISTINCT
         CASE
-            WHEN LEFT(business_address, 1) ~ '^[0-9]' 
+            -- Checks if address starts with a number ('39 Pier')
+            WHEN LEFT(business_address, 1) ~ '^[0-9]'
+            -- If so, extract 2nd word (1st token after a space)
             THEN LOWER(SPLIT_PART(business_address, ' ', 2))
+            -- If not, extract the 1st word (1st token before a space)
             ELSE LOWER(SPLIT_PART(business_address, ' ', 1))
         END
     ) AS n_streets
