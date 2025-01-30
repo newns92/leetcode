@@ -14,7 +14,7 @@ value:          int
 purchase_id:    int
 */
 
--- ATTEMPT: LAG for Month-over-month SUM
+-- ATTEMPT: LAG for Month-over-month with a SUM() inside
 SELECT
     -- *,
     TO_CHAR(created_at, 'YYYY-MM') AS year_month,
@@ -35,6 +35,34 @@ ORDER BY year_month ASC
 ;
 
 
+-- ATTEMPT 2: CTE usage with SUM of all revenues per YYYYMM, then use LAG
+WITH revenues AS (
+    SELECT
+        -- *,
+        TO_CHAR(created_at, 'YYYY-MM') AS year_month,
+        SUM(value) AS revenue
+    FROM sf_transactions
+    GROUP BY year_month
+    -- ORDER BY year_month ASC
+    -- LIMIT 3
+)
+
+SELECT
+    year_month,
+    -- revenue AS current_month_revenue,
+    -- LAG(revenue, 1) OVER(ORDER BY year_month) AS last_month_revenue,
+    -- CALCULATION = ((this month's revenue - last month's revenue) / last month's revenue) * 100
+    ROUND((
+        (revenue - LAG(revenue, 1) OVER(ORDER BY year_month))
+        / 
+        LAG(revenue, 1) OVER(ORDER BY year_month)
+    ) * 100, 2) AS mom_perc_change
+FROM revenues
+;
+
+
+
+
 -- SOLUTION: Uses WINDOW clause (?)
 -- https://docs.aws.amazon.com/kinesisanalytics/latest/sqlref/sql-reference-window-clause.html
 --  - The WINDOW clause in a query specifies records in a stream partitioned by the time range interval or the number of rows, 
@@ -49,7 +77,11 @@ SELECT
         )
     , 2) AS revenue_diff_pct
 FROM sf_transactions
-GROUP BY year_month 
+GROUP BY year_month
+-- This part of the code defines a window named "w" that is used to sort the data in the window based
+--  on the "year_month" column in ascending order. 
+-- This sorted data is used to calculate the lag value for the percentage change calculation
+-- ***SEEMS TO BE A MODULAR WAY OF DOING ATTEMPT 1***
 WINDOW w AS (
     ORDER BY TO_CHAR(created_at::DATE, 'YYYY-MM')
 )

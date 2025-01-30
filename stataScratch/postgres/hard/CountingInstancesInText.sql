@@ -21,9 +21,9 @@ With Words AS (
                 -- split the string by a delimiter (comma)
                 STRING_TO_ARRAY(contents, ' ')
             ),
-            '\W+', -- \W is the same as [^a-zA-Z0-9_]
+            '\W+', -- \W is the same as [^a-zA-Z0-9_] = find all non-alphanumeric/word character, + = one to unlimited times
             '', -- replace with blank character
-            'g' -- instructs the function to remove all alphabets, not just the first one.        
+            'g' -- instructs the function to remove all non-alphanumerics, not just the first one.        
         ) AS word
     FROM google_file_store
     -- LIMIT 20
@@ -34,6 +34,33 @@ SELECT
     COUNT(word)
 FROM Words
 WHERE LOWER(word) IN ('bull', 'bear')
+GROUP BY word
+;
+
+
+-- ATTEMPT 2: Same thing, slightly different notes
+WITH all_words AS (
+    SELECT
+        -- *,
+        REGEXP_REPLACE(
+            -- Convert a text block to an array and then unnest into a record per word
+            UNNEST(STRING_TO_ARRAY(contents, ' ')) -- AS test
+        -- Find all NON-alphanumeric characters/words, (+) one-to-unlimited times
+        , '\W+'
+        -- Replace with blank
+        , ''
+        -- Do so for all instances, not just the first one found
+        , 'g'
+        ) AS word
+    FROM google_file_store
+    -- LIMIT 3 -- only 3 records
+)
+
+SELECT
+    word,
+    COUNT(word)
+FROM all_words
+WHERE LOWER(word) in ('bear', 'bull')
 GROUP BY word
 ;
 

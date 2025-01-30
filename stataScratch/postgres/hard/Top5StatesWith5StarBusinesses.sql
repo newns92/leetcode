@@ -24,7 +24,7 @@ categories:     varchar
 */
 
 
--- ATTEMPT: RANK within CTE
+-- ATTEMPT: RANK within CTE using WHERE clause
 With Rankings AS (
     SELECT
         state,
@@ -46,6 +46,50 @@ WHERE state_rank <= 5
 ORDER BY n_businesses DESC, state ASC
 ;
 
+
+-- ATTEMPT 2: CTE with CASE statements for counting businesses with 5 stars (A bit more convoluted)
+--   CONFUSED over why not DENSE_RANK()? Seems wrong to use RANK() as we are
+--      ignoring rank 5, state = EDH
+WITH rankings AS (
+    SELECT
+        -- Output the state name along with the number of 5-star businesses 
+        state,
+        COUNT(DISTINCT
+            CASE
+                WHEN stars = 5
+                THEN business_id
+                ELSE NULL
+            END
+        ) AS n_five_star_businesses,
+        -- -- Want to return unique states in case of tie, so don't skip rankings
+        -- DENSE_RANK() OVER(ORDER BY 
+        RANK() OVER(ORDER BY
+            COUNT(DISTINCT
+                CASE
+                    WHEN stars = 5
+                    THEN business_id
+                    ELSE NULL
+                END
+            )
+        DESC) AS n_five_star_businesses_rank
+    FROM yelp_business
+    GROUP BY state
+    -- Order by the number of 5-star businesses in descending order
+    -- ORDER BY n_five_star_businesses DESC
+    -- LIMIT 10
+)
+
+SELECT
+    state,
+    n_five_star_businesses
+FROM rankings
+WHERE n_five_star_businesses_rank <= 5
+ORDER BY
+    -- Order by the number of 5-star businesses in descending order
+    n_five_star_businesses DESC,
+    -- If two states have the same result, sort them in alphabetical order
+    state ASC
+;
 
 -- Solution: CTE within a Subquery in the WHERE clause
 WITH cte AS (

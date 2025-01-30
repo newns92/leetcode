@@ -14,7 +14,7 @@ user2:  int
 */
 
 
--- ATTEMPT: UNIONed two CTE's
+-- ATTEMPT: UNIONed two CTE's for total of three CTE's
 With UserOne AS (
     SELECT
         user1 AS user_id,
@@ -64,7 +64,57 @@ ORDER BY user_id ASC
 ;
 
 
--- SOLUTION: A different UNION approach
+
+-- ATTEMPT 2: UNION within a CTE, doing COUNTs of distinct users in the UNION CTE, and
+--  doing a SUBQUERY in the calculation
+WITH data AS (
+    SELECT -- DISTINCT
+        -- *
+        -- COUNT(DISTINCT user1) AS distinct_users1,
+        -- COUNT(DISTINCT user2) AS distinct_users2
+        user1 AS main_user, -- (1, 2, 3, 4, 7, 8)
+        -- user2 AS main_user, -- (1, 2, 3, 5, 6, 9)
+        COUNT(DISTINCT user2) AS main_user_friends
+        -- COUNT(DISTINCT user1) AS main_user_friends
+    FROM facebook_friends
+    GROUP BY main_user
+    -- LIMIT 3
+    -- ;
+    
+    UNION
+    
+    SELECT -- DISTINCT
+        -- *
+        -- COUNT(DISTINCT user1) AS distinct_users1,
+        -- COUNT(DISTINCT user2) AS distinct_users2
+        -- user1 AS main_user, -- (1, 2, 3, 4, 7, 8)
+        user2 AS main_user, -- (1, 2, 3, 5, 6, 9)
+        -- COUNT(DISTINCT user2) AS main_user_friends
+        COUNT(DISTINCT user1) AS main_user_friends
+    FROM facebook_friends
+    GROUP BY main_user
+    -- LIMIT 3
+    
+    -- ORDER BY main_user ASC
+)
+
+-- https://stackoverflow.com/questions/2387734/a-simple-way-to-sum-a-result-from-union-in-mysql
+SELECT
+    main_user,
+    -- (SELECT COUNT(DISTINCT main_user) FROM data) AS total_users,
+    SUM(main_user_friends) -- AS total_main_user_friends
+    /
+    (SELECT COUNT(DISTINCT main_user) FROM data)::FLOAT
+    * 100 AS popularity_perc
+FROM data
+GROUP BY main_user
+ORDER BY main_user ASC
+;
+
+
+
+
+-- SOLUTION: A different UNION approach, *within* the CTE
 WITH users_union AS (
     SELECT
         user1,
