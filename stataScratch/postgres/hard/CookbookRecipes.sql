@@ -18,7 +18,7 @@ title:          varchar
 */
 
 
--- ATTEMPT: GENERATE_SERIES, 2 CTE's, and a Self-JOIN to squash/merge two columns
+-- ATTEMPT: GENERATE_SERIES for *ONLY* left_page_number, then 2 CTE's, and a Self-JOIN to squash/merge two columns
 With Series AS (
     -- HAS to be DISTINCT because it duplicates the series in the column for some reason?
     SELECT DISTINCT
@@ -88,6 +88,64 @@ LEFT JOIN Test t2 ON
     t1.left_page_number = t2.future_left_page_number
 WHERE t1.left_page_number IS NOT NULL
 ;
+
+
+-- ATTEMPT 2: GENERATE_SERIES again, but to create ALL pages in range, then 
+--  two CTE's, first LEFT JOIN-ing to generated series in 2nd CTE, then
+--  doing calculations in final SELECT
+WITH all_pages AS (
+    SELECT
+        GENERATE_SERIES(0, MAX(page_number)) AS page_number
+    FROM cookbook_titles
+),
+
+joined_to_full_series AS (
+    SELECT
+        all_pages.page_number,
+        cookbook_titles.title
+    FROM all_pages
+    LEFT JOIN cookbook_titles
+        ON all_pages.page_number = cookbook_titles.page_number
+)
+
+-- SELECT
+--     *
+-- FROM joined_to_full_series
+-- ;
+
+SELECT
+    -- k-th row =  2 * k in the first and second columns respectively, and the
+    --      title of the page with the number 2 * k + 1 in the third column
+    -- Ex:
+    --      - 0th row = 2 * 0 = left_page_number, page 2 * 0 left_title, page 2 * 0 + 1 = right_title
+    --      - 1st row = 2 * 1 = left_page_number, page 2 * 1 = left_title, page 2 * 1 + 1 = right_title
+    --      - 2nd row = 2 * 2 = left_page_number, page 2 * 2 = left_title, page 2 * 2 + 1 = right_title
+    (2 * joined_to_full_series.page_number) AS left_page_number,
+    -- (2 * joined_to_full_series.page_number + 1) AS right_page_number,
+    (
+        SELECT
+            cookbook_titles.title
+        FROM cookbook_titles
+        -- page 2 * k = left_title
+        WHERE cookbook_titles.page_number = 2 * joined_to_full_series.page_number
+    ) AS left_title,
+    (
+        SELECT
+            cookbook_titles.title
+        FROM cookbook_titles
+        -- page 2 * k + 1 = right_title
+        WHERE cookbook_titles.page_number = 2 * joined_to_full_series.page_number + 1
+    ) AS test4 -- ,
+FROM joined_to_full_series
+WHERE (2 * joined_to_full_series.page_number) <= (SELECT MAX(page_number) FROM joined_to_full_series)
+-- WHERE combined.page_number <= (SELECT MAX(page_number) FROM combined)
+ORDER BY joined_to_full_series.page_number ASC
+-- LIMIT 3
+;
+
+
+
+
 
 
 -- SOLUTION: Faster than mine, uses GENERATE_SERIES, 2 CTE's, and ROW_NUMBER + STRING_AGG in final query

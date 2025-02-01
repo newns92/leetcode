@@ -116,6 +116,56 @@ WHERE above_ratio = (SELECT MAX(above_ratio) FROM ClientCounts)
 ;
 
 
+-- ATTEMPT 3 (2025): CTE with a flag for every client + user combo that matched conditions, then
+--      summing the flags in the final ORDER BY clause
+WITH flags AS (
+    SELECT
+        -- *
+        client_id,
+        -- COUNT(user_id) AS user_counts
+        user_id,
+        -- event_type,
+        CASE
+            WHEN
+                SUM(
+                        CASE
+                            WHEN LOWER(event_type) IN ('video call received', 'video call sent',
+                                'voice call received', 'voice call sent')
+                            THEN 1
+                            ELSE 0
+                        END
+                    ) -- AS sum_event_flag
+                    /
+                    COUNT(event_id)::FLOAT -- AS sum_events
+                    -- AS event_flag_ratio
+                >= 0.5
+            THEN 1
+            ELSE 0
+        END AS client_id_flag
+    FROM fact_events
+    -- GROUP BY client_id
+    GROUP BY
+        client_id,
+        user_id
+    -- ORDER BY
+    --     client_id,
+    --     user_id
+    -- LIMIT 20
+)
+
+SELECT
+    client_id -- ,
+    -- SUM(client_id_flag) AS sum_flags
+FROM flags
+GROUP BY client_id
+ORDER BY SUM(client_id_flag) DESC
+LIMIT 1
+;
+
+
+
+
+
 -- SOLUTION: Less cluttered, but with Nested Subqueries, the inner one being in the WHERE clause of the outer
 SELECT
     client_id

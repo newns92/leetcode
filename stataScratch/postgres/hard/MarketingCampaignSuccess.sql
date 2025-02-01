@@ -16,7 +16,7 @@ quantity:   int
 price:      int
 */
 
--- ATTEMPT: 2 CTE's
+-- ATTEMPT 1: 2 CTE's
 With MinDate AS (
     -- Get the minimum purchase date as the first one, and the product purchased on that date
     SELECT
@@ -64,6 +64,60 @@ WHERE created_at > first_purchase_date AND
 -- ORDER BY user_id
 -- LIMIT 20
 ;
+
+
+-- ATTEMPT 2: Two CTE's again, very different strategy
+WITH next_purchase_dates AS (
+    SELECT
+        *,
+        -- WINDOW functions not allowed in WHERE clause in the next CTE, so
+        --      must created the next purchase date here and then JOIN on it
+        LEAD(created_at, 1) OVER(PARTITION BY user_id ORDER BY user_id) AS next_purchase_date
+    FROM marketing_campaign
+    -- ORDER BY user_id, created_at
+    -- LIMIT 20
+)
+,
+
+next_purchases AS (
+    SELECT
+        created.user_id,
+        created.created_at,
+        LEAD(created.created_at, 1) 
+            OVER(PARTITION BY created.user_id ORDER BY created.user_id) AS next_purchase_date,
+        created.product_id AS product_id_first,
+        -- next.next_purchase_date,
+        LAG(created.created_at, 1) 
+            OVER(PARTITION BY created.user_id ORDER BY created.user_id) AS prev_purchase_date,
+        next.product_id AS product_id_next -- ,
+        -- CASE
+        --     WHEN created.product_id <> next.product_id
+        --         -- AND created.created_at <> next.next_purchase_date
+        --     THEN 'yes'
+        --     ELSE 'no'
+        -- END AS success_flag
+    FROM next_purchase_dates AS created
+    LEFT JOIN next_purchase_dates AS next
+        ON created.created_at = next.next_purchase_date
+            AND created.user_id = next.user_id
+)
+
+-- SELECT * FROM next_purchases;
+
+SELECT
+    COUNT(DISTINCT
+        CASE
+            WHEN product_id_first <> product_id_next
+                -- In case they bought 2 different products on the same date
+                AND created_at <> prev_purchase_date
+            THEN user_id
+            ELSE NULL
+        END
+    ) AS successes
+FROM next_purchases
+;
+
+
 
 
 -- SOLUTION: 3 Subqueries, one nested within another

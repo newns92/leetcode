@@ -66,6 +66,44 @@ GROUP BY host_pop_rating
 ;
 
 
+-- ATTEMPT 2: Simple CASE statement (>= instead of BETWEEN), include commented-out median calculation
+WITH data AS (
+    SELECT DISTINCT -- Duplicate host_id's causes issues with AVG(price)
+        -- Create host_id = concatenate price, room_type, host_since, zipcode, and number_of_reviews
+        CONCAT(price, room_type, host_since, zipcode, number_of_reviews) AS host_id,
+        price,
+        number_of_reviews,
+        CASE
+            -- NOTE:CASE WHEN value returned = the value of the THEN expression for the 
+            --      earliest WHEN clause (textually) that matches
+            WHEN number_of_reviews = 0
+                THEN 'New'
+            WHEN number_of_reviews <= 5 -- and number_of_reviews >= 0
+                THEN 'Rising'
+            WHEN number_of_reviews <= 15 -- and number_of_reviews >= 6 
+                THEN 'Trending Up'
+            WHEN number_of_reviews <= 40 -- and number_of_reviews >= 16
+                THEN 'Popular'
+            ELSE 'Hot' -- or 'WHEN number_of_reviews > 40'
+        END AS popularity_rating
+    FROM airbnb_host_searches
+    -- ORDER BY number_of_reviews DESC
+    -- LIMIT 10
+)
+
+SELECT
+    -- *
+    popularity_rating,
+    MIN(price) AS min_price,
+    AVG(price) AS avg_price,
+    -- PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY price) AS med_price,
+    MAX(price) AS max_price    
+FROM data
+GROUP BY popularity_rating
+;
+
+
+
 -- Solution: CASE in the subquery?
 WITH hosts AS (
     SELECT DISTINCT 

@@ -139,6 +139,111 @@ WHERE t1.jan_retention_rate IS NOT NULL AND
 ;
 
 
+-- ATTEMPT 2: Only two CTE's, but with slightly convoluted calculation in final SELECT statement
+WITH activity AS (
+    SELECT
+        -- date,
+        account_id, -- associated with the activity
+        user_id, -- performing the activity
+        TO_CHAR(date::DATE, 'YYYY-MM') AS current_year_month,
+        TO_CHAR(
+            date + INTERVAL '1 month'
+            , 'YYYY-MM'
+        ) AS next_year_month,
+        TO_CHAR(
+            date - INTERVAL '1 month'
+            , 'YYYY-MM'
+        ) AS prior_year_month,        
+        1 AS current_month_activity
+    FROM sf_events
+    ORDER BY
+        current_year_month ASC,
+        user_id ASC
+)
+
+-- SELECT * FROM activity
+,
+
+next_month_lookahead AS (
+    SELECT DISTINCT
+        a1.*,
+        a2.current_month_activity AS next_month_activity
+    FROM activity AS a1
+    LEFT JOIN activity AS a2
+        ON
+            a1.current_year_month = a2.prior_year_month
+            AND a1.account_id = a2.account_id
+            AND a1.user_id = a2.user_id
+    -- WHERE a1.user_id = 'U1'
+    -- ORDER BY
+    --     a1.account_id ASC,
+    --     a1.current_year_month ASC,
+    --     a1.user_id ASC
+)
+
+SELECT
+    account_id,
+    (
+        SUM(
+            CASE
+                WHEN current_year_month = '2021-01'
+                THEN next_month_activity
+                ELSE 0
+            END
+        ) 
+        -- AS num_jan_2021_retained
+        /
+        SUM(
+            CASE
+                WHEN current_year_month = '2021-01'
+                THEN current_month_activity
+                ELSE 0
+            END
+        )::FLOAT
+        -- AS jan_2021_activities
+    )
+    -- AS retention_rate_jan_2021
+    /
+    (
+        SUM(
+            CASE
+                WHEN current_year_month = '2020-12'
+                THEN next_month_activity
+                ELSE 0
+            END
+        ) 
+        -- AS num_dec_2020_retained,
+        /
+        SUM(
+            CASE
+                WHEN current_year_month = '2020-12'
+                THEN current_month_activity
+                ELSE 0
+            END
+        )::FLOAT
+        -- -- AS num_dec_2020_activities,
+    )
+    -- AS retention_rate_dec_2020,
+    AS retention_rate_ratio
+    FROM next_month_lookahead
+    -- WHERE a1.user_id = 'U1'
+    GROUP BY account_id
+    ORDER BY
+        account_id ASC -- ,
+        -- a1.current_year_month ASC,
+        -- a1.user_id ASC
+
+-- A1-U1:
+--      - 2/3 for DEC2020
+--      - 2/3 for JAN2021
+--      - = 1:1 ratio
+-- 
+;
+
+
+
+
+
 -- SOLUTION: 5 CTE's
 WITH dec_2020 AS (
     SELECT DISTINCT
